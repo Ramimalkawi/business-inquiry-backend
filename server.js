@@ -21,8 +21,17 @@ app.get("/", (req, res) => {
 
 app.post("/api/business-inquiry", async (req, res) => {
   try {
-    const { first_name, last_name, email, phone, company, message } = req.body;
+    const {
+      first_name,
+      last_name,
+      email,
+      phone_code,
+      phone,
+      company,
+      message,
+    } = req.body;
 
+    const fullPhone = `${phone_code || ""} ${phone || ""}`.trim();
     if (!first_name || !last_name || !email || !phone || !company) {
       return res.status(400).json({
         ok: false,
@@ -61,7 +70,7 @@ app.post("/api/business-inquiry", async (req, res) => {
                   </tr>
                   <tr>
                     <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:14px;font-weight:700;color:#1d1d1f;">Phone</td>
-                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;color:#1d1d1f;">${phone}</td>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;color:#1d1d1f;">${fullPhone}</td>
                   </tr>
                   <tr>
                     <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:14px;font-weight:700;color:#1d1d1f;">Company</td>
