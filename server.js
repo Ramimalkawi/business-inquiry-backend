@@ -114,7 +114,7 @@ app.post("/api/business-inquiry", async (req, res) => {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e5e7;">
             <tr>
               <td style="padding:28px 32px;border-bottom:1px solid #e5e5e7;">
-                <h1 style="margin:0;font-size:30px;line-height:1.15;">Thank you for contacting eStore</h1>
+                <h1 style="margin:0;font-size:30px;line-height:1.15;">Thank you for contacting eStore Apple Authorised Reseller</h1>
               </td>
             </tr>
             <tr>
