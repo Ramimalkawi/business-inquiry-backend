@@ -165,6 +165,161 @@ app.post("/api/business-inquiry", async (req, res) => {
   }
 });
 
+app.post("/api/edu-verification", async (req, res) => {
+  try {
+    const { name, email, cart_items, cart_total, id_front, id_back } = req.body;
+
+    if (!name || !email || !id_front || !id_back) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "Missing required fields." });
+    }
+
+    const items = Array.isArray(cart_items) ? cart_items : [];
+
+    const cartRows = items.length
+      ? items
+          .map((item) => {
+            const title = item.title || item.product_title || "Item";
+            const variant = item.variant_title
+              ? ` — ${item.variant_title}`
+              : "";
+            const qty = item.quantity ?? 1;
+            const linePrice =
+              item.line_price != null
+                ? (item.line_price / 100).toFixed(2)
+                : item.price != null
+                  ? ((item.price * qty) / 100).toFixed(2)
+                  : "—";
+            return `
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid #f0f0f2;font-size:14px;color:#1d1d1f;">${title}${variant}</td>
+                <td style="padding:10px 0;border-bottom:1px solid #f0f0f2;font-size:14px;color:#1d1d1f;text-align:center;">${qty}</td>
+                <td style="padding:10px 0;border-bottom:1px solid #f0f0f2;font-size:14px;color:#1d1d1f;text-align:right;">${linePrice}</td>
+              </tr>`;
+          })
+          .join("")
+      : `<tr><td colspan="3" style="padding:10px 0;font-size:14px;color:#6e6e73;">No items provided.</td></tr>`;
+
+    const totalDisplay = cart_total != null ? cart_total : "—";
+
+    function parseImage(dataUrl) {
+      if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
+        const [header, base64] = dataUrl.split(",");
+        const mime = header.match(/data:([^;]+);/)?.[1] || "image/jpeg";
+        return { mime, content: Buffer.from(base64, "base64") };
+      }
+      return { mime: "image/jpeg", content: Buffer.from(dataUrl, "base64") };
+    }
+
+    const extMap = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+    const front = parseImage(id_front);
+    const back = parseImage(id_back);
+
+    const adminHtml = `
+  <div style="margin:0;padding:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e5e7;">
+
+            <tr>
+              <td style="padding:28px 32px;background:#ffffff;border-bottom:1px solid #e5e5e7;">
+                <div style="font-size:13px;line-height:1.4;color:#6e6e73;margin-bottom:8px;">eStore Education Discount Verification</div>
+                <h1 style="margin:0;font-size:30px;line-height:1.15;color:#1d1d1f;">New Education ID Submission</h1>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:28px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                  <tr>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;width:180px;font-size:14px;font-weight:700;color:#1d1d1f;">Customer name</td>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;color:#1d1d1f;">${name}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:14px;font-weight:700;color:#1d1d1f;">Email</td>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;">
+                      <a href="mailto:${email}" style="color:#06c;text-decoration:none;">${email}</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px 0;font-size:14px;font-weight:700;color:#1d1d1f;">Cart total</td>
+                    <td style="padding:14px 0;font-size:15px;color:#1d1d1f;">${totalDisplay}</td>
+                  </tr>
+                </table>
+
+                <div style="margin-top:28px;">
+                  <div style="font-size:14px;font-weight:700;color:#1d1d1f;margin-bottom:12px;">Cart items</div>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                    <tr>
+                      <th style="padding:8px 0;border-bottom:2px solid #e5e5e7;font-size:13px;font-weight:700;color:#6e6e73;text-align:left;">Product</th>
+                      <th style="padding:8px 0;border-bottom:2px solid #e5e5e7;font-size:13px;font-weight:700;color:#6e6e73;text-align:center;">Qty</th>
+                      <th style="padding:8px 0;border-bottom:2px solid #e5e5e7;font-size:13px;font-weight:700;color:#6e6e73;text-align:right;">Price</th>
+                    </tr>
+                    ${cartRows}
+                  </table>
+                </div>
+
+                <div style="margin-top:28px;background:#f5f5f7;border:1px solid #e5e5e7;border-radius:14px;padding:16px 20px;font-size:14px;color:#6e6e73;">
+                  Student ID images (front &amp; back) are attached to this email.
+                </div>
+
+                <div style="margin-top:28px;">
+                  <a href="mailto:${email}" style="display:inline-block;background:#0071e3;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;line-height:1;padding:14px 22px;border-radius:999px;">
+                    Reply to ${name.split(" ")[0]}
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 32px;background:#fafafa;border-top:1px solid #e5e5e7;font-size:12px;line-height:1.6;color:#6e6e73;">
+                This submission was sent from the Education Discount verification form on estorejo.com.
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+`;
+
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL,
+      to: ["estore.smartcloud@gmail.com"],
+      reply_to: email,
+      subject: `Education ID Verification — ${name} — ${email}`,
+      html: adminHtml,
+      attachments: [
+        {
+          filename: `student-id-front.${extMap[front.mime] || "jpg"}`,
+          content: front.content,
+        },
+        {
+          filename: `student-id-back.${extMap[back.mime] || "jpg"}`,
+          content: back.content,
+        },
+      ],
+    });
+
+    return res
+      .status(200)
+      .json({ ok: true, message: "Verification submitted successfully." });
+  } catch (error) {
+    console.error("Edu verification send error:", error);
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to submit verification." });
+  }
+});
+
 app.listen(port, "0.0.0.0", () => {
   console.log(`Server listening on port ${port}`);
 });
