@@ -292,7 +292,7 @@ app.post("/api/edu-verification", async (req, res) => {
 `;
 
     await resend.emails.send({
-      from: process.env.FROM_EMAIL,
+      from: process.env.FROM_EMAIL_Education_ID_Verification,
       to: ["orders@estorejo.com"],
       reply_to: email,
       subject: `Education ID Verification — ${name} — ${email}`,
