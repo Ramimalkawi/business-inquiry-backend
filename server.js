@@ -293,7 +293,7 @@ app.post("/api/edu-verification", async (req, res) => {
 
     await resend.emails.send({
       from: process.env.FROM_EMAIL,
-      to: ["estore.smartcloud@gmail.com"],
+      to: ["orders@estorejo.com"],
       reply_to: email,
       subject: `Education ID Verification — ${name} — ${email}`,
       html: adminHtml,
