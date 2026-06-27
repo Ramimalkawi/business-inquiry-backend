@@ -320,6 +320,144 @@ app.post("/api/edu-verification", async (req, res) => {
   }
 });
 
+app.post("/api/prize-claim", async (req, res) => {
+  try {
+    const { name, email, phone, prize } = req.body;
+
+    if (!name || !email || !phone || !prize) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "Missing required fields." });
+    }
+
+    const adminHtml = `
+  <div style="margin:0;padding:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e5e7;">
+
+            <tr>
+              <td style="padding:28px 32px;background:#ffffff;border-bottom:1px solid #e5e5e7;">
+                <div style="font-size:13px;color:#6e6e73;margin-bottom:8px;">eStore Spin & Win</div>
+                <h1 style="margin:0;font-size:30px;line-height:1.15;color:#1d1d1f;">🎉 New Prize Claim</h1>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:28px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                  <tr>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;width:180px;font-size:14px;font-weight:700;color:#1d1d1f;">Customer Name</td>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;color:#1d1d1f;">${name}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:14px;font-weight:700;color:#1d1d1f;">Email</td>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;">
+                      <a href="mailto:${email}" style="color:#06c;text-decoration:none;">${email}</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:14px;font-weight:700;color:#1d1d1f;">Phone</td>
+                    <td style="padding:14px 0;border-bottom:1px solid #f0f0f2;font-size:15px;color:#1d1d1f;">${phone}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px 0;font-size:14px;font-weight:700;color:#1d1d1f;">Prize Won</td>
+                    <td style="padding:14px 0;font-size:15px;color:#1d1d1f;font-weight:600;">${prize}</td>
+                  </tr>
+                </table>
+
+                <div style="margin-top:28px;">
+                  <a href="mailto:${email}" style="display:inline-block;background:#0071e3;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;line-height:1;padding:14px 22px;border-radius:999px;">
+                    Contact ${name.split(" ")[0]}
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 32px;background:#fafafa;border-top:1px solid #e5e5e7;font-size:12px;color:#6e6e73;">
+                Submitted via Spin & Win on estorejo.com
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+    `;
+
+    const customerHtml = `
+  <div style="margin:0;padding:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e5e7;">
+
+            <tr>
+              <td style="padding:28px 32px;border-bottom:1px solid #e5e5e7;">
+                <h1 style="margin:0;font-size:28px;line-height:1.15;color:#1d1d1f;">🎉 You won: ${prize}</h1>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:28px 32px;font-size:15px;line-height:1.8;color:#1d1d1f;">
+                <p style="margin:0 0 18px;">Hi ${name.split(" ")[0]},</p>
+                <p style="margin:0 0 18px;">
+                  Congratulations! You won <strong>${prize}</strong> from our Spin &amp; Win wheel on eStore.
+                </p>
+                <p style="margin:0 0 18px;">
+                  Our team will contact you soon at <strong>${phone}</strong> or reply to this email to arrange delivery of your prize.
+                </p>
+                <p style="margin:0 0 18px;color:#6e6e73;font-size:14px;">
+                  If you have any questions, feel free to reach out to us directly.
+                </p>
+                <p style="margin:24px 0 0;">Best regards,<br>eStore Team</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 32px;background:#fafafa;border-top:1px solid #e5e5e7;font-size:12px;color:#6e6e73;">
+                eStore Apple Authorised Reseller — estorejo.com
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+    `;
+
+    // Send to admin
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL,
+      to: ["orders@estorejo.com"],
+      reply_to: email,
+      subject: `🎉 Prize Claim — ${name} won: ${prize}`,
+      html: adminHtml,
+    });
+
+    // Send confirmation to customer
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL,
+      to: [email],
+      subject: `🎉 You won ${prize} — eStore Spin & Win`,
+      html: customerHtml,
+    });
+
+    return res
+      .status(200)
+      .json({ ok: true, message: "Prize claim submitted successfully." });
+  } catch (error) {
+    console.error("Prize claim error:", error);
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to submit prize claim." });
+  }
+});
+
 app.listen(port, "0.0.0.0", () => {
   console.log(`Server listening on port ${port}`);
 });
