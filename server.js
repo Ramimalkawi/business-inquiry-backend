@@ -432,7 +432,7 @@ app.post("/api/prize-claim", async (req, res) => {
 
     // Send to admin
     await resend.emails.send({
-      from: process.env.FROM_EMAIL,
+      from: process.env.FROM_EMAIL_PRIZE_Notification,
       to: ["orders@estorejo.com"],
       reply_to: email,
       subject: `🎉 Prize Claim — ${name} won: ${prize}`,
@@ -441,7 +441,7 @@ app.post("/api/prize-claim", async (req, res) => {
 
     // Send confirmation to customer
     await resend.emails.send({
-      from: process.env.FROM_EMAIL,
+      from: process.env.FROM_EMAIL_PRIZE_Notification,
       to: [email],
       subject: `🎉 You won ${prize} — eStore Spin & Win`,
       html: customerHtml,
